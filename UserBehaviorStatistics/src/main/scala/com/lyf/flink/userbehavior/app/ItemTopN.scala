@@ -53,6 +53,9 @@ object ItemTopN {
     //2.对数据流进行transform，并进行开窗聚合
     val aggStream = userBehaviorStream.filter(_.behavior == "pv")
       .keyBy("itemId")
+//      .timeWindowAll()
+//      .windowAll()
+//      .timeWindowAll()
       .timeWindow(Time.hours(1), Time.minutes(5)) //窗口长度为1h,步长为5min的滑动窗口
       .aggregate(new ItemsAgg(), new CountWindowResult())
 
@@ -128,7 +131,7 @@ class ResProcessFunction(topSize:Int) extends KeyedProcessFunction[Long, ItemPVC
         .append(topNList(elem).pvCount)
         .append("\n")
     }
-    res.append("--------------------------------")
+    res.append("--------------------------------\n")
     out.collect(res.toString)
 
 
