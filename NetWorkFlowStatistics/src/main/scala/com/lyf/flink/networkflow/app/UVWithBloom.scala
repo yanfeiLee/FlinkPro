@@ -53,7 +53,7 @@ object UVWithBloom {
 }
 
 //布隆过滤器
-class Bloom(size: Long) {
+class Bloom(size: Long) extends Serializable {
   // 内部属性，位图的大小，必须是 2^N
   private val cap = size
 
@@ -83,11 +83,11 @@ class MyTrigger() extends Trigger[(String, Long), TimeWindow] {
 class UVCountPF() extends ProcessWindowFunction[(String, Long), (String, Long), String, TimeWindow] {
   lazy val jedis = new Jedis("hadoop104", 6379)
   //初始化位图大小 位图大小为约 10^9，由于需要2的整次幂，所以转换成了 2^30
-  lazy val bloom = new Bloom(1 >> 32)
-
+  lazy val bloom = new Bloom(1 << 30) //128M
+  //
   override def process(key: String, context: Context, elements: Iterable[(String, Long)], out: Collector[(String, Long)]): Unit = {
     // 存储方式：一个窗口对应一个位图，所以以windowEnd为 key，(windowEnd, bitmap)
-    val field = context.window.getEnd.toString
+    val field = context.window.getEnd.toString //redis中string类型值得最大长度512M
     //由于使用了FIRE_AND_PURGE 触发器，将窗口的统计结果存入redis
     val hashName = "uvCount"
     var count = 0L
@@ -96,9 +96,9 @@ class UVCountPF() extends ProcessWindowFunction[(String, Long), (String, Long), 
       count = jedis.hget(hashName, field).toLong
     }
     //更新值
-    //判断当前uid是否出现在bitma中
-    val uid = elements.last._2.toString
-    val offset = bloom.hash(uid,61)
+    //判断当前uid是否出现在bitmap中
+    val uid = elements.last._2.toString  //取出单个组的元素
+    val offset = bloom.hash(uid,61) //获取当前uid的hash值，即bitmap中的offset
     val isExists = jedis.getbit(field,offset)
     val format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
     if (!isExists){
@@ -106,7 +106,7 @@ class UVCountPF() extends ProcessWindowFunction[(String, Long), (String, Long), 
       jedis.setbit(field,offset,true)
       jedis.hset(hashName,field,(count+1).toString)
       //输出统计结果
-      out.collect((format.format(new Date(field.toLong)),count+1))
+      //out.collect((format.format(new Date(field.toLong)),count+1))
     }
 
   }
