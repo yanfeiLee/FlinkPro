@@ -12,6 +12,8 @@
         <module>UserBehaviorStatistics</module>
         <module>NetWorkFlowStatistics</module>
         <module>MarketingStatistics</module>
+        <module>LoginDetect</module>
+        <module>OrderDetect</module>
     </modules>
     <properties>
         <flink.version>1.10.0</flink.version>

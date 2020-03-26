@@ -9,16 +9,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>NetWorkFlowStatistics</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>OrderDetect</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <dependencies>
-        <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-            <version>2.8.1</version>
-        </dependency>
 
-    </dependencies>
 
 </project>
